@@ -2,56 +2,53 @@
 1. 通过ansible自动化安装zookeeper的docker集群
 2. 确保zookeeper集群节点数为2N+1
 3. 目前仅支持Centos7.x版本
-4. zookeeper 版本为 3.4.13  
-下载链接地址：https://archive.apache.org/dist/zookeeper/zookeeper-3.4.13/zookeeper-3.4.13.tar.gz  
+4. zookeeper 镜像版本为 docker.io/zookeeper:3.4.13  
+5. 因为集群间各容器使用随机端口进行心跳检查,存在从容器中访问其他节点容器不通的情况。本文直接使用host网络模式解决节点间不通的问题
 
+## Configuration  vars/zk.yml
+-----------------------------
+1、更新vars/zk.yml中的 mount_path 宿主机挂载目录
+# env path
+mount_path: "/data/zookeeper"   #zookeeper宿主机挂载目录
 
-## Configuration
+2、指定vars/zk.yml中容器启动的端口
+# zookeeper port
+client_port: 2181
+leader_port: 2888
+vote_port: 3888
+jmx_port: 11911
+random_port: "30001-65006"  #heartbeat port
 
-1. 下载zookeeper至本地任意文件夹
-2. 更新vars/zk.yml 中的 download_path 路径
-```
----
-# zookeeper version
-zookeeper_version: 3.4.13
-
+3、指定用户、组
 # zookeeper user                   
 user: "zookeeper"
 group: "zookeeper"
 
-# zookeeper data path
-data_dir: zookeeper_storage
-zookeeper_log_path: "{{install_dir}}/zookeeper_log"  
-
-# zookeeper port
-leader_port: 12888
-vote_port: 13888
-client_port: 12181
-jmx_port: 11911
-random_port: "30001-65006"
-
-firewall_ports:
-  - "{{ leader_port }}"
-  - "{{ vote_port }}"
-  - "{{ client_port }}"
-  - "{{ jmx_port }}"
-  - "{{ random_port }}"
-
-# env path
-install_dir: "/home/{{ user }}"
-download_path: "/home/pippo/Downloads/"               # your local download path
-tmp_path: "/tmp"
-
+4、指定主机组名 [与host中配置一致]
 # host group
-zk_hosts: zookeeper                                   # the group define in hosts/host
+zk_hosts: zookeeper   # the group define in hosts
 
-```
+---------------------------
+#主机组文件
+1、hosts中指定集群机器
+[zookeeper]
+192.168.xx.xx
+192.168.xx.xx
+192.168.xx.xx
+
+[zookeeper:vars]
+ansible_ssh_user=xxx
+ansible_ssh_pass=xxx
+ansible_ssh_port=xxx
+
+
+
 
 ## Install
 1. check  zookeeper.yml
-2. install_zk, config_zk, start_service, add_user, open_firewall 修改为false即可取消执行
-```
----
+2. install_zk, config_zk, add_user, open_firewall 修改为false即可取消执行
+
+----------------------
 
 - hosts: zookeeper
 
@@ -62,16 +59,13 @@ zk_hosts: zookeeper                                   # the group define in host
     - "vars/zk.yml"
 
   vars:
+    config_zk: true       # config zookeeper
 
     install_zk: true      # install zookeeper
 
-    config_zk: true       # config zookeeper
-
-    start_service: true   # auto start zookeeper service
-
     add_user: true        # add zookeeper user 
 
-    open_firewall: true   # open firewall
+    open_firewall: false   # open firewall
 
   roles:
 
@@ -100,7 +94,7 @@ mount:
   /datalog
 
 
-  docker run -d -v /data/zookeeper/data:/data -v /data/zookeeper/conf/:/conf -v /data/zookeeper/datalog:/datalog -e ZOO_SERVERS="server.1=172.16.0.5:2888:3888" -e ZOO_MY_ID=1 -p 2181:2181 -p 2888:2888 -p 3888:3888 --name zook1 docker.io/zookeeper:3.4.13
+  docker run -d -v /data/zookeeper/data:/data -v /data/zookeeper/conf/:/conf -v /data/zookeeper/datalog:/datalog -e ZOO_SERVERS="server.1=ip:2888:3888" -e ZOO_MY_ID=1 -p 2181:2181 -p 2888:2888 -p 3888:3888 --name zook1 docker.io/zookeeper:3.4.13
 
   检查节点状态
   echo ruok|nc host_ip 2181  -> imok
@@ -119,7 +113,7 @@ Zxid: 0x0
 Mode: standalone
 Node count: 4
 
-主机组中各主机需要安装docker
+主机组中各主机需要安装docker及playbook使用的docker-py模块
 yum install -y yum-utils \
   device-mapper-persistent-data \
   lvm2
