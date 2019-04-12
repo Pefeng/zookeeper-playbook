@@ -4,6 +4,6 @@
 192.168.90.242
 
 [zookeeper:vars]
-ansible_ssh_user=root
-ansible_ssh_pass=123456
+ansible_ssh_user=xx
+ansible_ssh_pass=xxx
 ansible_ssh_port=22
