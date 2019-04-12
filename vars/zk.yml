@@ -1,0 +1,36 @@
+---
+# zookeeper version
+zookeeper_version: 3.4.13
+
+# zookeeper user
+user: "zookeeper"
+group: "zookeeper"
+
+# zookeeper data path
+conf_dir: "{{mount_path}}/conf"
+data_dir: "{{mount_path}}/data"
+log_dir: "{{mount_path}}/log"
+
+# zookeeper image
+docker_image_name: "docker.io/zookeeper"
+docker_image_tag: "3.4.13"
+
+# zookeeper port
+client_port: 2181
+leader_port: 2888
+vote_port: 3888
+jmx_port: 11911
+random_port: "30001-65006"  #heartbeat port
+
+firewall_ports:
+  - "{{ leader_port }}"
+  - "{{ vote_port }}"
+  - "{{ client_port }}"
+  - "{{ jmx_port }}"
+  - "{{ random_port }}"
+
+# env path
+mount_path: "/data/zookeeper"   #zookeeper宿主机挂载目录
+
+# host group
+zk_hosts: zookeeper             # the group define in hosts/host

@@ -1,0 +1,14 @@
+---
+- hosts: zookeeper
+  user: root
+  gather_facts: False
+  vars_files:
+    - "vars/zk.yml"
+  vars:
+    add_user: true        # add zookeeper user
+    config_zk: true       # config zookeeper
+    install_zk: true      # install zookeeper
+    open_firewall: true    # open port firewall     
+  roles:
+    - user                # add user
+    - zookeeper           # zookeeper install

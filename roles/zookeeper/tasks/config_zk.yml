@@ -1,0 +1,26 @@
+---
+#- name: Create zookeeper's mount {conf,data,log} Dir
+- file:
+    path: "{{item}}"
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ group}}"
+    mode: "u=rwx,g=r,o=r"
+  with_items:
+    - "{{ conf_dir }}"
+    - "{{ data_dir }}"
+    - "{{ log_dir }}"
+
+- name: Copy zoo.cfg
+  template: src=zoo.cfg dest={{conf_dir}} mode=644 owner={{ user }} group = {{ group }}
+
+- name: Copy log4j
+  template: src=log4j.properties dest={{conf_dir}} mode=644 owner={{ user }} group = {{ group }}
+
+- name: Copy setId Shell
+  template: src=setId.sh dest={{data_dir}} mode=755 owner={{ user }} group = {{ group }}
+
+- name: set Id
+  shell: 'source {{data_dir}}/setId.sh'
+  become: yes
+  become_user: "{{ user }}"

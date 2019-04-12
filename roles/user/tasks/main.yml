@@ -1,0 +1,8 @@
+---
+- name: Add Zookeeper User 
+  user:
+    name: "{{ user }}"
+    shell: /bin/bash
+    groups: "{{ group }}"
+    append: yes
+  when: add_user

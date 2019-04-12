@@ -1,0 +1,36 @@
+---
+- name: pull zookeeper image && run docker container
+  docker_container:
+    name: zookeeper
+    image: "{{docker_image_name}}:{{docker_image_tag}}"
+    state: started
+    restart: yes
+    ports:
+      - "{{client_port}}:2181"
+      - "{{leader_port}}:2888"
+      - "{{vote_port}}:3888"
+    volumes:
+      - "{{conf_dir}}:/conf"
+      - "{{data_dir}}:/data"
+      - "{{log_dir}}:/datalog"
+    network_mode: "host"
+
+
+- name: "检查节点是否正常启动"
+  shell: "echo ruok|nc {{ansible_ssh_host}} {{client_port}}"
+  register: node_port_status
+  until: node_port_status.rc == 0
+  retries: 10
+  delay: 3
+
+- name: 集群节点运行状态
+  shell: "echo status|nc {{ansible_ssh_host}} {{client_port}}"
+  register: node_info
+  ignore_errors: True
+  when: node_port_status.stdout == "imok"
+- debug: "msg={{node_info.stdout_lines}}"
+
+
+- name: "节点启动失败"
+  fail: msg="节点{{ansible_ssh_host}}启动失败"
+  when: '"imok" not in node_port_status.stdout'

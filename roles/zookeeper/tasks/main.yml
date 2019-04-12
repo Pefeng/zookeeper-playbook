@@ -1,0 +1,12 @@
+---
+- name: Config Zookeeper
+  include: config_zk.yml
+  when: config_zk
+
+- name: Install Zookeeper
+  include: install_zk.yml
+  when: install_zk
+
+- name: open port firewalld
+  include: firewalld_zk.yml
+  when: open_firewall
