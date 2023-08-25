@@ -6,7 +6,6 @@
 5. 因为集群间各容器使用随机端口进行心跳检查,存在从容器中访问其他节点容器不通的情况。本文直接使用host网络模式解决节点间不通的问题
 
 ## Configuration  vars/zk.yml
------------------------------
 1、更新vars/zk.yml中的 mount_path 宿主机挂载目录
 # env path
 mount_path: "/data/zookeeper"   #zookeeper宿主机挂载目录
